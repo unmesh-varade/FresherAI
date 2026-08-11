@@ -2,8 +2,28 @@ import React from 'react'
 import { FiX } from 'react-icons/fi'
 import {motion} from 'motion/react'
 import { FcGoogle } from "react-icons/fc";
+import { signInWithPopup } from 'firebase/auth';
+import { auth, provider } from '../../utils/firebase';
+import api from '../../utils/axios';
 
 export function LoginModal({onClose}) {
+
+  const handleGoogleAuth = async ()=>{
+    try{
+      const result = await signInWithPopup(auth,provider)
+      const token = await result.user.getIdToken()
+
+      const response = await api.post("api/auth/login",{token})
+
+      onClose()
+
+      console.log(response.data)
+
+    } catch(error){
+      console.log(error)
+    }
+  }
+
   return (
     <div className="
       fixed inset-0 z-50
@@ -48,6 +68,7 @@ export function LoginModal({onClose}) {
           {/* Google */}
           <div className='mt-7'>
             <motion.button
+            onClick={handleGoogleAuth}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
               className='w-full
