@@ -49,3 +49,29 @@ export const GoogleAuth = async (req,res)=>{
         })
     }
 }
+
+export const logOut = async (req,res)=>{
+    try {
+        const sessionId = req.cookies?.session;
+        
+        if(sessionId){
+            await redis.del(`session:${sessionId}`);
+        }
+
+        res.clearCookie("session",{
+            httpOnly:true,
+            secure:false,
+            sameSite:"strict"
+        })
+        
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
+        })
+    } catch (error){
+        return res.status(500).json({
+            success:false,
+            message: error.message
+        })
+    }
+}
