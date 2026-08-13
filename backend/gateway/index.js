@@ -4,6 +4,8 @@ import proxy from "express-http-proxy";
 import cors from "cors"
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import { getCurrentUser } from "./controllers/user.controller.js";
+import { isAuth } from "./middleware/isAuth.js";
 
 dotenv.config()
 
@@ -24,6 +26,7 @@ app.get("/",(req,res)=>{
 })
 
 app.use("/api/auth", proxy(process.env.AUTH_SERVICE_URL))
+app.get("/api/me", isAuth, getCurrentUser)
 
 app.listen(PORT, ()=>{
     console.log(`Gateway started on ${PORT}`);

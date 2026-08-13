@@ -4,7 +4,7 @@ import {GiArtificialHive} from "react-icons/gi"
 import {FaArrowRight} from "react-icons/fa6"
 import {LoginModal} from "../components/LoginModal.jsx";
 
-export function Home(){
+export function Home({setUser}){
   const [showLogin,setShowLogin] = useState(false);
 
   return (
@@ -42,7 +42,7 @@ export function Home(){
             
         </section>
 
-        {showLogin && <LoginModal onClose={()=>setShowLogin(false)}/> }
+        {showLogin && <LoginModal onClose={()=>setShowLogin(false)} setUser={setUser}/> }
 
     </div>
   )

@@ -1,9 +1,9 @@
 import React from 'react'
 
-export const Dashboard = () => {
+export function Dashboard({user, setUser}) {
   return (
-    <div className='text-violet-700 text-3xl'>
-      Dashboard
+    <div className='text-9xl text-amber-200'>
+      {user.name}
     </div>
   )
 }

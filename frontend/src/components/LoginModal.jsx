@@ -3,10 +3,10 @@ import { FiX } from 'react-icons/fi'
 import {motion} from 'motion/react'
 import { FcGoogle } from "react-icons/fc";
 import { signInWithPopup } from 'firebase/auth';
-import { auth, provider } from '../../utils/firebase';
-import api from '../../utils/axios';
+import { auth, provider } from '../utils/firebase';
+import api from '../utils/axios';
 
-export function LoginModal({onClose}) {
+export function LoginModal({onClose, setUser}) {
 
   const handleGoogleAuth = async ()=>{
     try{
@@ -15,9 +15,11 @@ export function LoginModal({onClose}) {
 
       const response = await api.post("api/auth/login",{token})
 
+      setUser(response?.data.user)
+
       onClose()
 
-      console.log(response.data)
+      // console.log(response.data)
 
     } catch(error){
       console.log(error)
