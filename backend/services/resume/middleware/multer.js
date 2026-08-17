@@ -4,7 +4,7 @@ import multer from "multer"
 const uploadPath = "../uploads";
 
 if(!fs.existsSync(uploadPath)){
-    fs.mkdirSync()
+    fs.mkdirSync(uploadPath)
 }
 
 const storage = multer.diskStorage({
@@ -24,7 +24,7 @@ const fileFilter = (req,file,cb)=>{
     }
 }
 
-const upload = multer({
+export const upload = multer({
     storage,
     fileFilter,
     limits:{

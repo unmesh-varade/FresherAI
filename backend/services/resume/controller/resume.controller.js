@@ -5,7 +5,7 @@ import redis from "../../../shared/redis/redis.js";
 import { resumeAgent } from "../agents/resume.agent.js";
 import extractText from "../config/pdf.js";
 import Resume from "../model/resume.model.js";
-import fs from "fs";
+import fs from "fs/promises";
 
 export const uploadResume = async (req, res) => {
     const file = req.file;
@@ -41,13 +41,13 @@ export const uploadResume = async (req, res) => {
         if (resume) {
             Object.assign(resume, {
                 ...resumeData,
-                extractText: resumeText,
+                extractedText: resumeText,
             });
             await resume.save();
         } else {
             resume = await Resume.create({
                 userId,
-                extractText: resumeText,
+                extractedText: resumeText,
                 ...resumeData,
             });
         }
@@ -67,7 +67,11 @@ export const uploadResume = async (req, res) => {
         console.log(error);
 
         if (file) {
-            await fs.unlink(file.path);
+            try {
+                await fs.unlink(file.path);
+            } catch (cleanupError) {
+                console.log("Failed to delete uploaded file:", cleanupError.message);
+            }
         }
         return res.status(500).json({
             success: false,
