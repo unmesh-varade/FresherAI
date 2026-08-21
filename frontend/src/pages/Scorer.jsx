@@ -1,11 +1,56 @@
 import { useNavigate } from "react-router-dom"
 import { motion } from "motion/react"
 import { useState } from "react";
-import {
-    FiUploadCloud, FiCheckCircle,
-    FiAlertCircle, FiTrendingUp, FiUser, FiZap
-} from "react-icons/fi";
+import { FiUploadCloud, FiUser, FiCheckCircle, FiAlertCircle, FiZap, FiTrendingUp } from "react-icons/fi";
 import api from "../utils/axios";
+import { useDispatch, useSelector } from "react-redux";
+import { setResume } from "../redux/resumeSlice";
+import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
+
+
+// Score Ring
+const ScoreRing = ({ score }) => {
+    const color = score >= 75 ? "#7c3aed" : score >= 50 ? "#f59e0b" : "#ef4444";
+    return (
+        <div className="relative flex items-center justify-center">
+            <RadialBarChart
+                width={110}
+                height={110}
+                cx={55}
+                cy={55}
+                innerRadius={40}
+                outerRadius={53}
+                startAngle={90}
+                endAngle={-270}
+                data={[{ value: score, fill: color }]}
+                barSize={8}
+            >
+                <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                <RadialBar background={{ fill: "#e5e7eb" }} dataKey="value" cornerRadius={8} />
+            </RadialBarChart>
+
+            <div className="absolute flex  items-center">
+                <span className="text-lg font-bold text-white leading-none">{score}</span>
+                <span className="ml-1 text-[9px] text-gray-200 mt-0.5">/ 100</span>
+            </div>
+        </div>
+    )
+}
+
+// Tag
+function Tag({ text, color }) {
+    const styles = {
+        purple: "bg-purple-50 text-purple-700 border-purple-200",
+        red: "bg-red-50    text-red-700    border-red-200",
+        green: "bg-green-50  text-green-700  border-green-200",
+        yellow: "bg-yellow-50 text-yellow-700 border-yellow-200",
+    };
+    return (
+        <div className={`text-[10px] px-1.5 py-1 rounded-md border font-medium ${styles[color]}`}>
+            {text}
+        </div>
+    );
+}
 
 // Navbar 
 function Navbar({ label }) {
@@ -37,9 +82,11 @@ function Scorer({ user, setUser }) {
 
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const dispatch = useDispatch()
+    const { resume } = useSelector((state) => state.resume)
 
-    const uploadResume = async ()=>{
-        if(!file){
+    const uploadResume = async () => {
+        if (!file) {
             alert("Please select a PDF");
             return;
         }
@@ -47,9 +94,11 @@ function Scorer({ user, setUser }) {
             setLoading(true);
 
             const formData = new FormData()
-            formData.append("resume",file);
+            formData.append("resume", file);
 
             const response = await api.post("/api/resume/upload", formData);
+
+            dispatch(setResume(response?.data?.data))
 
             console.log(response.data);
             setLoading(false);
@@ -61,10 +110,129 @@ function Scorer({ user, setUser }) {
         }
     }
 
+    // Step 2: Results
+    if (resume) return (
+        <div className="min-h-screen bg-white text-[#0A0A0A]">
+            <Navbar label="Resume Scorer" />
+
+            <section className="max-w-6xl mx-auto px-3 pt-18 sm:pt-20 pb-8 space-y-3.5">
+                {/* Header */}
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p className="text-[10px] text-black/40 tracking-widest uppercase mb-0.5">
+                            Resume Analysis
+                        </p>
+                        <h1 className="text-lg font-bold">{resume?.name}</h1>
+                    </div>
+                    <button
+                        onClick={() => dispatch(setResume(null))}
+                        className="text-[10px] sm:text-xs text-black/50 hover:text-[#0A0A0A] border border-black/15 hover:border-black/35 px-2.5 py-1 rounded-lg transition-colors">
+                        Re-upload
+                    </button>
+                </div>
+
+                {/* Score Card */}
+                <motion.div
+                    initial={{ y: +20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.05 }}
+                    className="relative overflow-hidden bg-[#000000]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 flex flex-col items-center gap-4 sm:flex-row shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none" />
+
+                    <div className="relative">
+                        <ScoreRing score={resume?.score} />
+                    </div>
+
+                    <div className="relative">
+                        <p className="text-white/50 text-xs mb-0.5">
+                            Resume Score
+                        </p>
+                        <p className="text-lg sm:text-xl font-bold mb-1.5 text-white">
+                            {resume.score >= 75 ? "Strong" : resume.score >= 50 ? "Average" : "Needs Work"}
+                        </p>
+                        <div className="flex items-center gap-1.5">
+                            <FiUser className="text-purple-400 text-xs" />
+                            <span className="text-xs text-purple-300">{resume.suggestedRole}</span>
+                        </div>
+                    </div>
+                </motion.div>
+
+
+                {/* Strengths & Weaknesses */}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <motion.div
+                        initial={{ y: +20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.07 }}
+                        className="relative overflow-hidden bg-[#000000]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:flex-row shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none" />
+                        <div className="relative flex items-center gap-1.5 mb-2.5">
+                            <FiCheckCircle className="text-green-400" size={14} />
+                            <span className="text-xs font-semibold text-white">Strengths</span>
+                        </div>
+                        <div className="relative flex flex-wrap gap-1.5">
+                            {resume?.strengths?.map(s => <Tag key={s} text={s} color="green" />)}
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ y: +20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.07 }}
+                        className="relative overflow-hidden bg-[#000000]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:flex-row shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none" />
+                        <div className="relative flex items-center gap-1.5 mb-2.5">
+                            <FiAlertCircle className="text-yellow-400" size={14} />
+                            <span className="text-xs font-semibold text-white">Weaknesses</span>
+                        </div>
+                        <div className="relative flex flex-wrap gap-1.5">
+                            {resume?.weaknesses?.map(s => <Tag key={s} text={s} color="yellow" />)}
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Missing Skills */}
+                <motion.div
+                    initial={{ y: +20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.09 }}
+                    className="relative overflow-hidden bg-[#000000]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:flex-row shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none" />
+                    <div className="relative flex items-center gap-1.5 mb-2.5">
+                        <FiZap className="text-red-400" size={14} />
+                        <span className="text-xs font-semibold text-white">Missing Skills</span>
+                    </div>
+                    <div className="relative flex flex-wrap gap-1.5">
+                        {resume?.missingSkills?.map(s => <Tag key={s} text={s} color="red" />)}
+                    </div>
+                </motion.div>
+                
+                {/* Recommendations */}
+                <motion.div
+                    initial={{ y: +20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: 0.11 }}
+                    className="relative overflow-hidden bg-[#000000]/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 sm:flex-row shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent pointer-events-none" />
+                    <div className="relative flex items-center gap-1.5 mb-2.5">
+                        <FiTrendingUp className="text-purple-400" size={14} />
+                        <span className="text-xs font-semibold text-white">Recommendations</span>
+                    </div>
+                    <div className="relative flex flex-wrap gap-1.5">
+                        {resume?.recommendations?.map(s => <Tag key={s} text={s} color="purple" />)}
+                    </div>
+                </motion.div>
+
+
+            </section>
+        </div>
+    )
+
     // Step 1: Upload
     return (
         <div className='min-h-screen bg-white text-[#0A0A0A]'>
             <Navbar label="Resume Scorer" />
+
             <section className="flex min-h-screen items-center justify-center px-3 pt-18 pb-6">
                 <motion.div
                     initial={{ y: +60, opacity: 0 }}
@@ -107,12 +275,12 @@ function Scorer({ user, setUser }) {
                     {/* Submit */}
                     <motion.button
                         onClick={uploadResume}
-                        whileHover={{scale:1.07}}
-                        whileTap={{scale:0.97}}
+                        whileHover={{ scale: 1.07 }}
+                        whileTap={{ scale: 0.97 }}
                         disabled={loading || !file}
                         className="relative mt-4 w-full h-10 rounded-xl font-semibold text-xs bg-white text-[#0A0A0A] shadow-[0_4px_14px_rgba(255,255,255,0.15)] hover:bg-white/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                     >
-                        {loading? "Analysing..." : "Analyse Resume"}
+                        {loading ? "Analysing..." : "Analyse Resume"}
 
                     </motion.button>
 

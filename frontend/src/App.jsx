@@ -3,11 +3,15 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import {Home} from './pages/Home'
 import {Dashboard} from './pages/Dashboard'
 import { getCurrentUser } from './apis/user.api'
+import { getResume } from './apis/resume.api'
 import Scorer from './pages/Scorer'
+import { useDispatch } from 'react-redux'
+import { setResume } from './redux/resumeSlice'
 
 const App = () => {
   const [user,setUser] = useState(null);
   const [loading,setLoading] = useState(true);
+  const dispatch = useDispatch();
 
   useEffect(()=>{
     const getUser = async ()=>{
@@ -16,6 +20,14 @@ const App = () => {
       setLoading(false);
     }
     getUser();
+  },[])
+
+  useEffect(()=>{
+    const getResumeData = async ()=>{
+      const result = await getResume();
+      dispatch(setResume(result.data))
+    }
+    getResumeData();
   },[])
 
   if(loading){
