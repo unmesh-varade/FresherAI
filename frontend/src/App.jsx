@@ -7,6 +7,7 @@ import { getResume } from './apis/resume.api'
 import Scorer from './pages/Scorer'
 import { useDispatch } from 'react-redux'
 import { setResume } from './redux/resumeSlice'
+import ResumeBuilder from './pages/ResumeBuilder'
 
 const App = () => {
   const [user,setUser] = useState(null);
@@ -25,7 +26,7 @@ const App = () => {
   useEffect(()=>{
     const getResumeData = async ()=>{
       const result = await getResume();
-      dispatch(setResume(result.data))
+      dispatch(setResume(result?.data))
     }
     getResumeData();
   },[])
@@ -53,6 +54,11 @@ const App = () => {
 
             <Route path='/scorer' element={
               user? <Scorer user={user} setUser={setUser} /> : 
+              <Navigate to="/" replace/>}
+            />
+
+            <Route path='/resume' element={
+              user? <ResumeBuilder user={user} setUser={setUser} /> : 
               <Navigate to="/" replace/>}
             />
 
