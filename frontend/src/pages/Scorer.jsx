@@ -5,7 +5,8 @@ import { FiUploadCloud, FiUser, FiCheckCircle, FiAlertCircle, FiZap, FiTrendingU
 import api from "../utils/axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setResume } from "../redux/resumeSlice";
-import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
+import { interpolate, PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
+import { useCoins } from "../apis/user.api";
 
 
 // Score Ring
@@ -93,6 +94,12 @@ function Scorer({ user, setUser }) {
         try {
             setLoading(true);
 
+            const coinResponse = await useCoins({coins:10, action:"resume-scorer"})
+
+            setUser((prev) => ({
+                ...prev, interviewCoin:coinResponse?.interviewCoin
+            }))
+
             const formData = new FormData()
             formData.append("resume", file);
 
@@ -100,7 +107,7 @@ function Scorer({ user, setUser }) {
 
             dispatch(setResume(response?.data?.data))
 
-            console.log(response.data);
+            // console.log(response.data);
             setLoading(false);
 
         } catch (error) {
