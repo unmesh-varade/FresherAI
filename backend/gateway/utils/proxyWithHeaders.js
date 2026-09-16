@@ -10,6 +10,14 @@ export const proxyWithHeaders = (serviceUrl)=>{
                     proxyReqOpts.headers["x-user-id"] = srcReq.user.userId;
                 }
                 return proxyReqOpts;
+            },
+
+            proxyErrorHandler:(err,res,next)=>{
+                console.error(`Proxy error for ${serviceUrl}:`, err.message);
+
+                res.status(503).json({
+                    message:"Service temporarily unavailable"
+                })
             }
         }
     )
